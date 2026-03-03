@@ -2,307 +2,300 @@
 
 ## Purpose
 
-The `agenticdev-flutter` template defines a structured foundation for building Flutter applications using:
+This document provides a high-level overview of the architecture for the `agenticdev-flutter` template.
 
-- Clean Architecture
-- Multi-tenant SaaS awareness
-- Firebase-based authentication
-- API abstraction for backend integration
-- ADR-driven architectural governance
-- Agentic development workflow (Planner / Implementer / Reviewer)
+It defines:
 
-This document provides a high-level overview of the architecture.  
-Normative decisions are defined in the ADR documents under `docs/adr/`.
+* Overall system boundaries
+* Frontend (Flutter) architecture
+* Backend (Node.js + TypeScript) architecture
+* Cross-cutting concerns (authentication, multi-tenancy, logging, testing)
+* The relationship between code and Architectural Decision Records (ADRs)
 
----
+This document does not override:
 
-# Architectural Principles
+1. Project Constitution (`docs/PROJECT-CONSTITUTION.md`)
+2. ADR documents (`docs/adr/ADR-*.md`)
 
-The architecture is governed by the following principles:
-
-1. Clean Architecture layering
-2. Explicit separation of concerns
-3. No cross-layer shortcuts
-4. Multi-tenant context must be explicit
-5. Authentication delegated to Firebase
-6. Backend treated as external API
-7. All structural decisions documented via ADRs
-
-See:
-- ADR-001 — Architectural Governance & Agentic Workflow
-- ADR-002 — Flutter Client Clean Architecture
+In case of conflict, the Constitution and ADRs prevail.
 
 ---
 
-# System Context
+## 1. System Scope
 
-The system consists of:
+The template is a full-stack architectural baseline designed for multi-tenant SaaS systems.
 
-Flutter Client (this repository)
-↓
-External Backend APIs
-↓
-External Infrastructure (DB, services, etc.)
+It includes:
 
-The backend implementation is outside the scope of this template.
+* Flutter frontend client
+* Node.js + TypeScript backend
+* Firebase Authentication as identity provider
+* Clean Architecture on both frontend and backend
+* Bloc as official state management solution for Flutter
 
-The Flutter client interacts only via well-defined API boundaries.
+The goal of this template is long-term architectural stability and production readiness.
 
 ---
 
-# Clean Architecture Structure
+## 2. Authority & Related ADRs
 
-The canonical Flutter structure under `lib/` is:
+This document is governed by:
 
+* ADR-001 — Architectural Governance & Agentic Workflow
+* ADR-002 — Flutter Client Clean Architecture
+* ADR-003 — Backend Integration & API Abstraction
+* ADR-004 — Multi-Tenant Context Handling
+* ADR-005 — Authentication & Identity Strategy
+* ADR-006 — Testing & Quality Strategy
+* ADR-007 — Flutter State Management Strategy (Bloc)
+
+All structural decisions must align with these ADRs.
+
+---
+
+## 3. Frontend Architecture — Flutter
+
+### 3.1 Clean Architecture Layering
+
+The Flutter client follows Clean Architecture:
+
+```
 lib/
 ├── domain/
 ├── application/
 ├── infrastructure/
 └── presentation/
+```
+
+### domain
+
+* Pure Dart logic
+* Entities and value objects
+* Domain rules
+* No Flutter framework
+* No HTTP
+* No Firebase SDK
+
+### application
+
+* Use cases
+* Repository interfaces
+* Business orchestration
+* Depends only on domain
+
+### infrastructure
+
+* API client implementations
+* Firebase integrations
+* Local storage adapters
+* DTO mapping
+* Implements interfaces defined in application
+
+### presentation
+
+* Widgets
+* Pages
+* Navigation
+* Bloc classes
+* UI state logic only
+
+Dependency direction must always flow inward:
+
+* presentation → application → domain
+* infrastructure → application → domain
+
+No cross-layer shortcuts are allowed.
 
 ---
 
-## Domain Layer
+### 3.2 State Management (Bloc)
 
-Location: `lib/domain/`
-
-Contains:
-
-- Entities
-- Value Objects
-- Business rules
-- Pure Dart logic
-
-Constraints:
-
-- No Flutter dependencies
-- No HTTP
-- No Firebase SDK
-- No storage logic
-
----
-
-## Application Layer
-
-Location: `lib/application/`
-
-Contains:
-
-- Use cases
-- Repository interfaces
-- Orchestration logic
-
-Responsibilities:
-
-- Coordinate domain logic
-- Define contracts for infrastructure
-- Expose clean APIs to presentation
-
-Constraints:
-
-- May depend on domain
-- Must not depend on infrastructure
-- Must not depend on Flutter widgets
-
----
-
-## Infrastructure Layer
-
-Location: `lib/infrastructure/`
-
-Contains:
-
-- API clients
-- Local storage adapters
-- DTO ↔ Domain mappers
-- Firebase integration
-- Concrete repository implementations
-
-Responsibilities:
-
-- Implement application-defined interfaces
-- Handle external I/O
-
-Constraints:
-
-- May depend on application and domain
-- Must not introduce reverse dependencies
-
----
-
-## Presentation Layer
-
-Location: `lib/presentation/`
-
-Contains:
-
-- Widgets
-- Pages
-- Navigation logic
-- UI state wiring
-
-Responsibilities:
-
-- Render UI
-- Delegate business actions to use cases
-
-Constraints:
-
-- Must not contain business logic
-- Must not perform direct HTTP calls
-- Must not depend directly on infrastructure
-
----
-
-# Backend Integration Model
-
-The backend is treated as an external service.
-
-Communication flow:
-
-Widget  
-→ Use Case  
-→ Repository Interface  
-→ API Adapter  
-→ Backend  
+Bloc is the official state management strategy (ADR-007).
 
 Rules:
 
-- HTTP clients exist only in infrastructure.
-- DTOs are mapped to domain entities.
-- Transport errors are translated into structured application-level errors.
+* Bloc classes reside in the presentation layer.
+* Bloc depends on use cases defined in the application layer.
+* Bloc may use domain entities.
+* Bloc must not depend on infrastructure implementations.
+* Widgets dispatch events to Bloc.
+* Widgets render states exposed by Bloc.
+* Widgets must not contain business logic.
 
-See:
-- ADR-003 — Backend Integration & API Abstraction
-
----
-
-# Multi-Tenant Handling (Client-Side)
-
-The Flutter client is multi-tenant aware.
-
-Rules:
-
-- Tenant context must be explicit.
-- Tenant ID is part of authenticated session state.
-- Tenant ID must be passed into tenant-scoped use cases.
-- No global mutable tenant variables.
-- Local caches must be tenant-scoped.
-
-See:
-- ADR-004 — Multi-Tenant Context Handling
+Bloc acts as the orchestration layer between UI and use cases.
 
 ---
 
-# Authentication Model
+## 4. Backend Architecture — Node.js + TypeScript
 
-Authentication is delegated to Firebase Authentication.
+The backend mirrors Clean Architecture principles.
 
-Flow:
+```
+backend/src/
+├── domain/
+├── application/
+├── infrastructure/
+└── main/
+```
 
-1. Flutter client authenticates via Firebase SDK.
+### domain
+
+* Business entities (User, Tenant, etc.)
+* Domain rules
+* No Fastify
+* No Firebase
+* No framework code
+
+### application
+
+* Use cases
+* Ports (repository interfaces)
+* Business orchestration
+* No framework dependencies
+
+### infrastructure
+
+* Fastify HTTP server and routes
+* Firebase Admin integration
+* Repository implementations
+* Logging adapters
+* External integrations
+
+### main
+
+* Composition root
+* Dependency wiring
+* Server bootstrap
+
+Dependency flow:
+
+* infrastructure → application → domain
+* main assembles components but contains no business logic
+
+---
+
+## 5. Authentication Model
+
+Authentication uses Firebase as Identity Provider.
+
+### Client Flow
+
+1. Flutter authenticates via Firebase SDK.
 2. Firebase issues an ID token (JWT).
-3. Client attaches token to backend requests.
-4. Backend validates token and enforces authorization.
+3. The client sends the token to the backend via the `Authorization: Bearer <token>` header.
 
-Rules:
+### Server Flow
 
-- Firebase SDK usage lives in infrastructure.
-- Presentation layer must not depend directly on Firebase.
-- Identity (Firebase) is separated from authorization (backend responsibility).
+1. Backend verifies the token using Firebase Admin SDK.
+2. Backend extracts the user identity.
+3. Backend enforces authorization rules.
+4. Backend enforces tenant isolation.
 
-See:
-- ADR-005 — Authentication & Identity Strategy
-
----
-
-# Testing & Quality Model
-
-Testing follows layer-based strategy:
-
-Domain:
-- Pure unit tests
-
-Application:
-- Use case tests (mock repositories)
-
-Infrastructure:
-- Adapter tests
-
-Presentation:
-- Widget tests
-
-CI Requirements:
-
-- Static analysis must pass
-- Unit tests must pass
-- Widget tests must pass
-- No architectural violations
-
-See:
-- ADR-006 — Testing & Quality Strategy
+Identity (Firebase) and authorization (backend) are strictly separated.
+The backend is the ultimate authority for access control.
 
 ---
 
-# Agentic Development Model
+## 6. Multi-Tenant Model
 
-Development follows the Agentic Workflow defined in ADR-001:
+The system is multi-tenant by design.
+
+Principles:
+
+* Tenant context must always be explicit.
+* No global implicit tenant state.
+* Frontend handles tenant selection explicitly.
+* Backend enforces tenant isolation at the data layer.
+* Cross-tenant data access is a critical violation.
+
+Tenant context must be propagated through use cases and validated server-side.
+
+---
+
+## 7. Cross-Cutting Concerns
+
+### 7.1 Logging
+
+Backend:
+
+* Structured JSON logging
+* Logs include service identifier and environment context
+
+Frontend:
+
+* UI-level logging for debugging
+* Crash reporting may be integrated in derived projects
+
+---
+
+### 7.2 Testing
+
+Testing is mandatory per ADR-006.
+
+Frontend:
+
+* Unit tests for domain and application layers
+* Widget tests for presentation layer
+
+Backend:
+
+* Unit tests for use cases
+* Integration tests for HTTP endpoints
+
+No feature is considered complete if it violates testing requirements.
+
+---
+
+## 8. Development Workflow
+
+The project follows an agentic workflow:
 
 Planner:
-- Defines scope and structure.
+
+* Defines scope
+* Identifies relevant ADRs
+* Designs structure before code
 
 Implementer:
-- Writes code aligned with ADR constraints.
+
+* Writes code respecting layering and invariants
 
 Reviewer:
-- Verifies compliance with architecture and Definition of Done.
 
-This workflow may involve AI tooling (e.g., Copilot) but architectural responsibility remains explicit and documented.
+* Validates compliance with Constitution, ADRs, Architecture, and Definition of Done
 
----
-
-# Architectural Integrity
-
-The following are architectural invariants:
-
-- No business logic in presentation layer.
-- No infrastructure dependency in domain layer.
-- No direct API calls from widgets.
-- No implicit tenant context.
-- All structural changes require an ADR.
-
-Violations must be rejected during review.
+AI tools (e.g., Copilot) assist but do not define architecture.
 
 ---
 
-# Scope Boundaries
+## 9. Evolution Rules
 
-This template defines:
+Any change involving:
 
-- Flutter architecture
-- Client-side multi-tenancy handling
-- Authentication integration
-- API abstraction
-- Governance and workflow
+* Layer structure
+* State management strategy
+* Authentication model
+* Multi-tenant model
+* Backend runtime or framework
 
-This template does NOT define:
+Requires:
 
-- Backend runtime implementation
-- Database schema
-- Infrastructure deployment
+* A new ADR
+* Architectural review
+* Update of this document if needed
 
-Those concerns belong to backend repositories.
+Architecture evolves through ADRs, not through undocumented code changes.
 
 ---
 
-# Conclusion
+## 10. Architectural Principles
 
-`agenticdev-flutter` provides:
+The template follows these core principles:
 
-- A Clean Architecture-ready Flutter template
-- Multi-tenant SaaS awareness
-- Firebase-based authentication integration
-- Strong governance via ADRs
-- Agentic development workflow
+* Architecture First
+* Structure Before Code
+* Explicit Over Implicit
+* Governance Over Convenience
+* Long-Term Maintainability Over Short-Term Speed
 
-It is designed for long-term maintainability, scalability, and architectural clarity.
+This repository is a disciplined architectural baseline, not a rapid prototype scaffold.

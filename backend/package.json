@@ -7,15 +7,19 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main/server.js",
     "lint": "echo \"lint not configured yet\"",
-    "test": "echo \"test not configured yet\""
+    "test": "jest"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "fastify": "^5.7.4"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.11.30",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
     "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.0.18"
   }
 }
