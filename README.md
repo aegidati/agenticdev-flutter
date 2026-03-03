@@ -2,9 +2,10 @@
 
 Enterprise-ready multi-tenant SaaS architecture built with:
 
-- Backend: Django
-- Web: React
-- Mobile: React Native
+- Backend: **Node.js + TypeScript, Clean Architecture ready (Domain / Application / Interface / Infrastructure)**  
+  → See **ADR-022**
+- Frontend Mobile App: **Flutter, Clean Architecture ready (Domain / Application / Presentation / Infrastructure)**  
+  → See **ADR-023**
 - Monorepo structure
 - ADR-driven governance
 - Agent-based development workflow
@@ -28,11 +29,22 @@ This project follows:
 
 ## Root
 
-- backend/
-- frontend/
-- packages/
-- docs/
-- .github/
+- `backend/`
+  - `src/`
+    - `domain/`
+    - `application/`
+    - `interface/`
+    - `infrastructure/`
+- `frontend/`
+  - `flutter_app/`
+    - `lib/`
+      - `domain/`
+      - `application/`
+      - `presentation/`
+      - `infrastructure/`
+- `packages/`
+- `docs/`
+- `.github/`
 
 ---
 
@@ -40,16 +52,16 @@ This project follows:
 
 All documentation is located in `/docs`.
 
-docs/
-├── architecture/     → Technical design (how the system works)
-├── adr/              → Architectural Decision Records (normative)
-├── operations/       → STEP execution documents
-├── prompts/          → Governance and operational prompts
-│   ├── governance/
-│   └── operational/
-├── governance/       → Definition of Done and process rules
-├── guides/           → Developer guides
-└── snapshots/        → Architectural memory snapshots
+`docs/`
+- `architecture/` → Technical design (how the system works)
+- `adr/` → Architectural Decision Records (normative)
+- `operations/` → STEP execution documents
+- `prompts/` → Governance and operational prompts
+  - `governance/`
+  - `operational/`
+- `governance/` → Definition of Done and process rules
+- `guides/` → Developer guides
+- `snapshots/` → Architectural memory snapshots
 
 ---
 
@@ -57,7 +69,7 @@ docs/
 
 Current architectural memory snapshot:
 
-docs/snapshots/ARCHITECTURAL-DECISION-CONTEXT-SNAPSHOT.md
+`docs/snapshots/ARCHITECTURAL-DECISION-CONTEXT-SNAPSHOT.md`
 
 Use it to restore context in future sessions.
 
@@ -65,20 +77,13 @@ Use it to restore context in future sessions.
 
 # How to Execute a STEP
 
-1. Read the corresponding STEP document in:
-   docs/operations/<step-folder>/
-
-2. Invoke Planner:
-
-   @planner Plan <path-to-operational-prompt.md>
-
+1. Read the corresponding STEP document in:  
+   `docs/operations/<step-folder>/`
+2. Invoke Planner:  
+   `@planner Plan <path-to-operational-prompt.md>`
 3. Review and approve the plan.
-
 4. Invoke Implementer.
-
 5. Handoff to Reviewer:
-
-   Review according to:
    - STEP Definition of Done
    - Relevant ADRs
    - Prompt Governance Convention
@@ -89,9 +94,11 @@ Use it to restore context in future sessions.
 
 Before marking any STEP as DONE:
 
-- mypy must pass
-- flake8 must pass
-- pytest must pass
+- Backend typecheck must pass
+- Backend lint must pass
+- Backend tests must pass
+- Flutter analyze must pass
+- Flutter tests must pass
 - No ADR violations
 - No layering violations
 
