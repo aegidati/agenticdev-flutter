@@ -1,152 +1,29 @@
-# ADR INDEX
+# Architectural Decision Record Index — agenticdev-flutter
 
-## Purpose
+This repository contains the architectural decisions specific to the **agenticdev-flutter** template.
 
-This document provides a structured overview of all Architectural Decision Records (ADR) defined in the system.
+The scope is:
 
-Each ADR is authoritative only in its own document located in the `/adr` folder.
+- Flutter client applications
+- Clean Architecture layering
+- Agentic development workflow (Planner / Implementer / Reviewer)
+- Multi-tenant SaaS support from the client perspective
+- Integration with external backends via APIs
+- Firebase Authentication as Identity Provider
 
-This index:
+## ADR List
 
-- Provides thematic grouping
-- Helps developers quickly navigate architectural decisions
-- Prevents decision duplication
-- Supports documentation alignment
-- Enables snapshot verification
+| ID      | Title                                                  | Status   |
+|---------|--------------------------------------------------------|----------|
+| ADR-001 | Architectural Governance & Agentic Workflow            | Accepted |
+| ADR-002 | Flutter Client Clean Architecture                      | Accepted |
+| ADR-003 | Backend Integration & API Abstraction                  | Accepted |
+| ADR-004 | Multi-Tenant Context Handling (Client-Side)            | Accepted |
+| ADR-005 | Authentication & Identity Strategy (Firebase)          | Accepted |
+| ADR-006 | Testing & Quality Strategy for Flutter                 | Accepted |
 
----
+## Notes
 
-## ADR Authority Rule
-
-If any conflict arises between documents:
-
-ADR documents always prevail over:
-
-- Architecture documents
-- Operations / STEP documents
-- Prompts
-- Snapshot
-- Playbook
-
-This index does not override ADR content.
-It only organizes and summarizes them.
-
----
-
-# Core System Architecture
-
-- **ADR-001 — Multi-Tenancy Isolation Strategy**  
-  Defines tenant isolation model, row-level separation, and invariants.
-
-- **ADR-002 — Database Engine Strategy**  
-  Defines primary database engine and abstraction rules.
-
-- **ADR-003 — JWT Signing and Key Rotation Strategy**  
-  Defines authentication token strategy and cryptographic rules.
-
-- **ADR-013 — API Versioning & Backward Compatibility Strategy**
-  Defines versioning model and backward compatibility rules.
-
-- **ADR-004 — Caching Strategy**  
-  Defines Redis usage and cache authority rules.
-
-- **ADR-005 — API Rate Limiting Strategy**  
-  Defines centralized rate limiting and tenant-aware enforcement.
-
-- **ADR-021 — Project Initialization & Validation Policy**
-  Defines mandatory validation (STEP-FEAT-00) before starting business features in generated projects.
-
----
-
-# Scalability & Runtime Behavior
-
-- **ADR-006 — Background Job Processing Strategy**  
-  Defines async processing and worker separation.
-
-- **ADR-007 — Feature Flag & Runtime Configuration Strategy**  
-  Defines feature toggling and runtime configuration control.
-
-- **ADR-009 — Horizontal Scaling & Load Balancing Strategy**  
-  Defines stateless service rules and scaling model.
-
-- **ADR-011 — Event-Driven Architecture Strategy**  
-  Defines internal event patterns and decoupling model.
-
-- **ADR-012 — Distributed Tracing Strategy**  
-  Defines observability tracing boundaries.
-
----
-
-# Data Governance & Compliance
-
-- **ADR-008 — Audit Logging & Compliance Strategy**  
-  Defines audit logging scope and immutability principles.
-
-- **ADR-010 — Data Governance & Retention Policy**  
-  Defines retention rules and lifecycle constraints.
-
-- **ADR-018 — Database Migration & Schema Evolution Policy**  
-  Defines version-controlled schema changes.
-
----
-
-# Security & Governance
-
-- **ADR-014 — Advanced Secret Management Strategy**  
-  Defines secret handling and environment segregation.
-
-- **ADR-015 — Error & Exception Handling Strategy (API Error Contract)**  
-  Defines error layering and exposure rules.
-
-- **ADR-019 — Observability & Logging Contract**  
-  Defines structured logging requirements.
-
-- **ADR-020 — Code Style & Formatting Governance**  
-  Defines static analysis and formatting enforcement.
-
-- **ADR-017 — Dependency & Package Management Strategy**  
-  Defines dependency constraints and update discipline.
-
----
-
-# Testing & Quality
-
-- **ADR-016 — Testing Strategy & Test Pyramid**  
-  Defines testing pyramid and validation principles.
-
----
-
-# Coverage Summary
-
-The ADR set covers:
-
-- Multi-tenancy
-- Security
-- Authentication
-- Database
-- Caching
-- Rate limiting
-- Background jobs
-- Event-driven patterns
-- Observability
-- Scaling
-- Data governance
-- Migration
-- Testing
-- Dependency control
-- Code style governance
-
-Architectural coverage is complete for foundational SaaS architecture.
-
----
-
-# Maintenance Rules
-
-When introducing a new architectural rule:
-
-1. A new ADR must be created.
-2. This ADR-INDEX must be updated.
-3. Snapshot must reflect the new ADR.
-4. Architecture documents must reference it.
-
-This ensures decision traceability and prevents drift.
+- These ADRs are **specific to the Flutter client template** and do not reference any Python/Django or React stacks.
+- Backend details (runtime, database, etc.) are intentionally treated as external concerns; the Flutter app interacts with them via well-defined API abstractions.
+- Any additional structural or cross-cutting concerns (e.g. analytics, feature flags) MUST be documented in new ADRs and added to this index.

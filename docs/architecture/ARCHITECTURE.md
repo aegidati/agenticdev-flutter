@@ -1,360 +1,308 @@
-# ARCHITECTURE.md
+# Architecture Overview — agenticdev-flutter
+
+## Purpose
+
+The `agenticdev-flutter` template defines a structured foundation for building Flutter applications using:
+
+- Clean Architecture
+- Multi-tenant SaaS awareness
+- Firebase-based authentication
+- API abstraction for backend integration
+- ADR-driven architectural governance
+- Agentic development workflow (Planner / Implementer / Reviewer)
+
+This document provides a high-level overview of the architecture.  
+Normative decisions are defined in the ADR documents under `docs/adr/`.
 
 ---
 
-## 1. Purpose and Scope
+# Architectural Principles
 
-This document provides a high-level architectural overview of the system.
+The architecture is governed by the following principles:
 
-It defines:
+1. Clean Architecture layering
+2. Explicit separation of concerns
+3. No cross-layer shortcuts
+4. Multi-tenant context must be explicit
+5. Authentication delegated to Firebase
+6. Backend treated as external API
+7. All structural decisions documented via ADRs
 
-* The monorepo structure
-* The multi-tenant SaaS model
-* The core technology stack
-* The database abstraction strategy
-* The authentication model
-* The architectural constraints
-
-This document does NOT override Architecture Decision Records (ADRs) or detailed architecture documents.
-
-Reference hierarchy for this document:
-
-1. `/docs/adr/*.md`
-2. `/docs/governance/DEFINITION-OF-DONE-TEMPLATE.md`
-3. `/docs/prompts/governance/PROMPT-GOVERNANCE-CONVENTION.md`
-4. `/docs/operations/*.md`
-5. `/docs/architecture/*.md`
-
-In case of conflict, follow the hierarchy above; ADRs prevail.
+See:
+- ADR-001 — Architectural Governance & Agentic Workflow
+- ADR-002 — Flutter Client Clean Architecture
 
 ---
 
-## 2. System Overview
+# System Context
 
-The system is a multi-tenant SaaS full-stack application implemented as a single monorepo.
+The system consists of:
 
-Core characteristics:
+Flutter Client (this repository)
+↓
+External Backend APIs
+↓
+External Infrastructure (DB, services, etc.)
 
-* Multi-tenant by design
-* Backend implemented in Python / Django
-* Web frontend implemented in React (JavaScript)
-* Mobile frontend implemented in React Native
-* Backend-only reusable modules under `/packages`
-* Database abstraction layer allowing DB engine substitution
-* Authentication based on JWT + social authentication providers
+The backend implementation is outside the scope of this template.
 
-At this stage, the architecture defines the platform structure and constraints.
-Business capabilities and feature modules will be defined separately.
+The Flutter client interacts only via well-defined API boundaries.
 
 ---
 
-## 3. Architectural Style
+# Clean Architecture Structure
 
-The system follows a strict layered architecture with separation of concerns.
+The canonical Flutter structure under `lib/` is:
 
-### 3.1 Core Layers
-
-#### Domain Layer
-
-* Business rules
-* Core invariants
-* Domain models
-* Pure logic independent of frameworks
-
-#### Application Layer
-
-* Use cases
-* Orchestration logic
-* Coordination between domain and infrastructure
-
-#### Infrastructure Layer
-
-* Persistence implementations
-* External APIs
-* Framework integrations (e.g., Django ORM)
-* Technical adapters
-
-#### Presentation Layer
-
-* HTTP controllers / API endpoints
-* Web UI (React)
-* Mobile UI (React Native)
-* Transport-level logic only
-
-Strict rules:
-
-* No business logic in Presentation.
-* No direct database access from Presentation.
-* No infrastructure leakage into Domain.
-* No circular dependencies.
-* Dependency direction must always point inward.
+lib/
+├── domain/
+├── application/
+├── infrastructure/
+└── presentation/
 
 ---
 
-## 4. Monorepo Structure
+## Domain Layer
 
-```
-/
-├── backend/              # Django backend
-│   ├── domain/           # Business rules and core logic
-│   ├── application/      # Use cases and orchestration
-│   ├── infrastructure/   # Persistence and adapters
-│   └── interfaces/       # API endpoints
-├── frontend/
-│   ├── web/              # React web application
-│   └── mobile/           # React Native mobile application
-├── packages/             # Backend-only reusable modules
-├── docs/
-│   ├── adr/              # Architecture Decision Records
-│   ├── architecture/     # Detailed architectural specs
-│   └── features/         # Feature specifications
-├── .github/              # CI/CD, AI governance, workflows
-└── ARCHITECTURE.md       # This document
-```
+Location: `lib/domain/`
 
-### 4.1 Backend
+Contains:
 
-`/backend` contains the Django project and follows layered boundaries internally:
-
-* `domain/`
-* `application/`
-* `infrastructure/`
-* `interfaces/` (API layer)
-
-Exact structure is defined in:
-`/docs/architecture/backend-structure.md`
-
----
-
-### 4.2 Frontend — Web
-
-`/frontend/web` contains the React web client:
-
-* Presentational components
-* Routing
-* API communication layer
-* Tenant-aware UI behavior
-
-No business rules must reside here.
-
-Architecture details:
-`/docs/architecture/frontend-web.md`
-
----
-
-### 4.3 Frontend — Mobile
-
-`/frontend/mobile` contains the React Native mobile application:
-
-* Mobile navigation
-* UI components
-* Shared API client logic when possible
-
-Architecture details:
-`/docs/architecture/frontend-mobile.md`
-
----
-
-### 4.4 Packages (Backend Only)
-
-`/packages` contains reusable backend modules.
+- Entities
+- Value Objects
+- Business rules
+- Pure Dart logic
 
 Constraints:
 
-* No UI code.
-* No dependency on frontend.
-* Avoid hard coupling to Django where possible.
-* Must respect layered architecture.
-
-Design guidelines:
-`/docs/architecture/packages.md`
+- No Flutter dependencies
+- No HTTP
+- No Firebase SDK
+- No storage logic
 
 ---
 
-## 5. Multi-Tenancy Architecture
+## Application Layer
 
-The system is multi-tenant by design.
+Location: `lib/application/`
 
-### 5.1 Core Principles
+Contains:
 
-* Each request must resolve a Tenant Context.
-* Tenant resolution occurs at the system boundary.
-* Tenant context must be explicitly propagated.
-* No global mutable tenant state.
+- Use cases
+- Repository interfaces
+- Orchestration logic
 
-### 5.2 Tenant Isolation
+Responsibilities:
 
-Tenant isolation strategies may include:
+- Coordinate domain logic
+- Define contracts for infrastructure
+- Expose clean APIs to presentation
 
-* Database-per-tenant
-* Schema-per-tenant
-* Row-level isolation
-* Hybrid strategies
+Constraints:
 
-The chosen strategy is defined in:
-
-* `/docs/adr/ADR-001-multi-tenancy.md`
-* `/docs/architecture/multi-tenancy.md`
-
-The architecture must allow strategy evolution through ADR without structural rewrite.
+- May depend on domain
+- Must not depend on infrastructure
+- Must not depend on Flutter widgets
 
 ---
 
-## 6. Database Abstraction Strategy
+## Infrastructure Layer
 
-The system is designed to be database-engine agnostic.
+Location: `lib/infrastructure/`
 
-### 6.1 Abstraction Model
+Contains:
 
-* Standard persistence interfaces defined in application/infrastructure layers.
-* Database-specific implementations provided per engine.
-* Selection determined by:
+- API clients
+- Local storage adapters
+- DTO ↔ Domain mappers
+- Firebase integration
+- Concrete repository implementations
 
-  * Deployment configuration
-  * Tenant configuration (if applicable)
+Responsibilities:
 
-Domain and application layers must never depend on a specific DB engine.
+- Implement application-defined interfaces
+- Handle external I/O
 
----
+Constraints:
 
-### 6.2 Django Integration
-
-* Django ORM may serve as default adapter.
-* ORM usage must be encapsulated within infrastructure.
-* Domain logic must remain ORM-agnostic.
-* Repository pattern or equivalent abstraction must isolate persistence.
-
-Details:
-`/docs/architecture/database-abstraction.md`
+- May depend on application and domain
+- Must not introduce reverse dependencies
 
 ---
 
-## 7. Authentication and Authorization
+## Presentation Layer
 
-Authentication is based on:
+Location: `lib/presentation/`
 
-* JWT tokens
-* Social authentication providers (OAuth-based)
+Contains:
 
-### 7.1 JWT
+- Widgets
+- Pages
+- Navigation logic
+- UI state wiring
 
-* Tokens issued by backend.
-* Tokens may include tenant identifier in claims.
-* Stateless authentication model preferred.
+Responsibilities:
 
-### 7.2 Social Authentication
+- Render UI
+- Delegate business actions to use cases
 
-* Integrated via backend services.
-* Must integrate cleanly with JWT issuance.
-* Must respect tenant boundaries.
+Constraints:
 
-Details:
-`/docs/architecture/authentication.md`
-
-Authorization:
-
-* Enforced in application/domain layers.
-* Must not rely solely on frontend logic.
-
-Details:
-`/docs/architecture/authorization.md`
+- Must not contain business logic
+- Must not perform direct HTTP calls
+- Must not depend directly on infrastructure
 
 ---
 
-## 8. Cross-Cutting Concerns
+# Backend Integration Model
 
-Cross-cutting concerns include:
+The backend is treated as an external service.
 
-* Logging
-* Observability
-* Configuration management
-* Error handling
-* API versioning
-* Feature flags
+Communication flow:
 
-Defined in:
+Widget  
+→ Use Case  
+→ Repository Interface  
+→ API Adapter  
+→ Backend  
 
-* `/docs/architecture/logging.md`
-* `/docs/architecture/observability.md`
-* `/docs/architecture/configurations.md`
-* `/docs/architecture/api-versioning.md`
+Rules:
 
-All cross-cutting concerns must respect layered architecture and multi-tenant constraints.
+- HTTP clients exist only in infrastructure.
+- DTOs are mapped to domain entities.
+- Transport errors are translated into structured application-level errors.
 
----
-
-## 9. Performance and Scalability Principles
-
-The system must:
-
-* Avoid N+1 queries
-* Avoid blocking operations in async contexts
-* Support horizontal scaling
-* Avoid global mutable state
-* Support tenant-based scaling strategies
-
-Performance-sensitive decisions must be documented via ADR.
+See:
+- ADR-003 — Backend Integration & API Abstraction
 
 ---
 
-## 10. Testing Philosophy
+# Multi-Tenant Handling (Client-Side)
 
-Testing aligns with layering:
+The Flutter client is multi-tenant aware.
 
-* Domain → unit tests
-* Application → integration tests
-* Infrastructure → integration tests
-* Presentation → API/UI tests
+Rules:
 
-Tests validate behavior, not implementation structure.
+- Tenant context must be explicit.
+- Tenant ID is part of authenticated session state.
+- Tenant ID must be passed into tenant-scoped use cases.
+- No global mutable tenant variables.
+- Local caches must be tenant-scoped.
 
-Testing strategy defined in:
-`/docs/architecture/testing-strategy.md`
-
----
-
-## 11. CI/CD and Monorepo Governance
-
-CI/CD pipelines must:
-
-* Support selective builds per directory (backend, web, mobile, packages)
-* Run tests per affected module
-* Enforce linting and static analysis
-* Enforce architecture compliance where applicable
-
-Defined in:
-`/docs/architecture/ci-cd.md`
+See:
+- ADR-004 — Multi-Tenant Context Handling
 
 ---
 
-## 12. AI-Assisted Development Governance
+# Authentication Model
 
-This repository uses structured AI-assisted development.
+Authentication is delegated to Firebase Authentication.
 
-References:
+Flow:
 
-* `.github/copilot-instructions.md`
-* `.github/agents/*.agent.md`
+1. Flutter client authenticates via Firebase SDK.
+2. Firebase issues an ID token (JWT).
+3. Client attaches token to backend requests.
+4. Backend validates token and enforces authorization.
 
-AI tools must:
+Rules:
 
-* Respect documentation hierarchy.
-* Respect layered boundaries.
-* Not introduce new dependencies autonomously.
-* Follow Planning → Implementation → Review workflow.
+- Firebase SDK usage lives in infrastructure.
+- Presentation layer must not depend directly on Firebase.
+- Identity (Firebase) is separated from authorization (backend responsibility).
 
-Architecture prevails over generated output.
+See:
+- ADR-005 — Authentication & Identity Strategy
 
 ---
 
-## 13. Evolution Strategy
+# Testing & Quality Model
 
-The system is designed for controlled evolution.
+Testing follows layer-based strategy:
 
-Architectural changes must:
+Domain:
+- Pure unit tests
 
-* Be documented via ADR.
-* Avoid cascading structural rewrites.
-* Preserve layering and separation of concerns.
+Application:
+- Use case tests (mock repositories)
 
-The monorepo structure and multi-tenant model are foundational and must remain stable unless redefined through ADR.
+Infrastructure:
+- Adapter tests
+
+Presentation:
+- Widget tests
+
+CI Requirements:
+
+- Static analysis must pass
+- Unit tests must pass
+- Widget tests must pass
+- No architectural violations
+
+See:
+- ADR-006 — Testing & Quality Strategy
+
+---
+
+# Agentic Development Model
+
+Development follows the Agentic Workflow defined in ADR-001:
+
+Planner:
+- Defines scope and structure.
+
+Implementer:
+- Writes code aligned with ADR constraints.
+
+Reviewer:
+- Verifies compliance with architecture and Definition of Done.
+
+This workflow may involve AI tooling (e.g., Copilot) but architectural responsibility remains explicit and documented.
+
+---
+
+# Architectural Integrity
+
+The following are architectural invariants:
+
+- No business logic in presentation layer.
+- No infrastructure dependency in domain layer.
+- No direct API calls from widgets.
+- No implicit tenant context.
+- All structural changes require an ADR.
+
+Violations must be rejected during review.
+
+---
+
+# Scope Boundaries
+
+This template defines:
+
+- Flutter architecture
+- Client-side multi-tenancy handling
+- Authentication integration
+- API abstraction
+- Governance and workflow
+
+This template does NOT define:
+
+- Backend runtime implementation
+- Database schema
+- Infrastructure deployment
+
+Those concerns belong to backend repositories.
+
+---
+
+# Conclusion
+
+`agenticdev-flutter` provides:
+
+- A Clean Architecture-ready Flutter template
+- Multi-tenant SaaS awareness
+- Firebase-based authentication integration
+- Strong governance via ADRs
+- Agentic development workflow
+
+It is designed for long-term maintainability, scalability, and architectural clarity.

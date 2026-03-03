@@ -1,128 +1,138 @@
-# ARCHITECTURAL DECISION CONTEXT SNAPSHOT
+# Architectural Decision Context Snapshot
 
-## Purpose
+<!-- Meta: Integrity Lock: snapshot-v1.0.0 -->
 
-This file is a compact architectural memory snapshot.
+## 1. Purpose
 
-It is designed to:
+This document captures the **high-level architectural state** at a given point in time.
 
-- Re-establish architectural context in future sessions.
-- Prevent drift from accepted decisions.
-- Provide continuity when resuming work.
+Its purpose is to **re-establish context** quickly in future sessions, without re-scanning all ADRs, docs, and source code.
 
-It does not replace ADRs, governance, operations, or architecture documents.
+**It is NOT:**
+- A replacement for ADRs (those define architecture)
+- A replacement for governance documents (those define authority)
+- A replacement for operations docs (those define process)
+- A complete architecture document
 
----
+**It IS:**
+- A compact, structured reminder
+- A starting point for AI-assisted continuity
+- A memory aid for humans and agents
 
-## Authority Reminder
+## 2. Authority Reminder
 
-When conflicts exist, apply the documented hierarchy used across repository governance:
+**If this snapshot conflicts with official documentation, the official documentation prevails.**
 
-1. ADR documents
-2. Definition of Done
-3. Prompt Governance Convention
-4. STEP operational documents and operations playbooks
-5. Architecture documents
+In descending order of authority:
+
+1. `/docs/adr/*.md` — Accepted ADRs (highest)
+2. `/docs/operations/DEFINITION-OF-DONE.md`
+3. `/docs/operations/PROMPT-GOVERNANCE-CONVENTION.md`
+4. STEP documents in `/docs/operations/STEP*.md`
+5. `/docs/architecture/*.md` — Architecture documentation
 6. Operational prompts
-7. Snapshots
+7. **This snapshot** (lowest)
+
+When resuming work:
+- Always validate decisions against ADRs.
+- Always follow the governance model.
+
+This snapshot does NOT override ADRs.
+
+## 3. System Overview
+
+**Platform Context**:
+- Multi-tenant SaaS
+- Mobile-first client architecture
+- RESTful API backend
+- Relational database (PostgreSQL assumed)
+
+**Technology Stack**:
+- **Backend**: Node.js + TypeScript
+  - Clean Architecture layering (Domain / Application / Interface / Infrastructure)
+  - RESTful API endpoints
+  - Repository pattern for data access
+  - Dependency injection
+- **Mobile**: Flutter
+  - Clean Architecture layering (Presentation / Domain / Data)
+  - BLoC pattern for state management
+  - Repository pattern for data access
+  - Dependency injection via get_it
+  - Platform-agnostic UI components
+
+**Architectural Style**:
+- Layered architecture with strict dependency rules
+- Domain-driven design principles
+- Separation of concerns across layers
+- Infrastructure abstraction via interfaces
+- Mobile-first responsive design
+
+## 4. ADR Coverage
+
+The following ADRs define accepted architectural decisions:
+
+- **ADR-001** — Multi-Tenancy Isolation Strategy
+- **ADR-002** — Database Schema Strategy
+- **ADR-003** — JWT Signing & Key Rotation Strategy
+- **ADR-004** — Logging & Auditing Strategy
+- **ADR-005** — API Versioning Strategy
+- **ADR-006** — Secrets Management Foundation
+- **ADR-007** — Error Handling Strategy
+- **ADR-008** — Testing Strategy
+- **ADR-009** — CI/CD Pipeline Structure
+- **ADR-010** — Deployment Model
+- **ADR-011** — Monitoring & Observability
+- **ADR-012** — Rate Limiting & Throttling
+- **ADR-013** — Feature Flag Strategy
+- **ADR-014** — Advanced Secret Management Strategy
+- **ADR-015** — Context Propagation Strategy
+- **ADR-016** — Tenant Context Validation
+- **ADR-017** — Repository Interface Standardization
+- **ADR-018** — Dependency Injection Convention
+- **ADR-019** — Domain Model Persistence Separation
+- **ADR-020** — Application Service Responsibility Boundary
+- **ADR-021** — Infrastructure Service Abstraction
+- **ADR-022** — Backend Runtime & Clean Architecture Layering
+- **ADR-023** — Flutter Client Clean Architecture
+
+For structured navigation, see: `/docs/adr/ADR-INDEX.md`
+
+ADR-022 and ADR-023 supersede any prior assumptions about Django or React Native.
+
+## 5. Documented STEP State
+
+The following STEP documents define operational workflows:
+
+- **STEP-00** — Governance & Architecture First
+- **STEP-01** — Multi-Tenancy Foundation
+- **STEP-02** — Authentication & Security Core
+- **STEP-03** — Domain & Application Layer
+- **STEP-04** — Infrastructure & Persistence
+- **STEP-05** — API & Integration Layer
+- **STEP-06** — Testing & Deployment Pipeline
+
+For scope ownership and responsibility matrix, see:  
+`/docs/operations/STEP-RESPONSIBILITY-MATRIX.md`
+
+## 6. Architectural Invariants
+
+The following constraints are derived from ADRs and must be preserved:
+
+1. **Tenant isolation is mandatory** — no cross-tenant data leakage
+2. **Database is the source of truth** — no persistent state outside the database
+3. **No cross-layer shortcuts** — respect layering rules strictly
+4. **No hardcoded secrets** — all secrets must be externalized
+5. **Structural changes require ADR governance** — no ad-hoc architecture modification
+
+## 7. Resume Guidance
+
+When resuming work on this project:
+
+1. Load this snapshot for quick context.
+2. Load relevant ADRs and STEP docs for authority.
+3. Continue from the next planned step in the active STEP.
+
+**Do not treat this snapshot as authoritative.**  
+**Always validate against ADRs before implementing.**
 
 ---
-
-## System Overview
-
-Current documented platform context:
-
-- Fullstack SaaS platform
-- Multi-tenant
-- Monorepo
-- Backend: Django
-- Web: React
-- Mobile: React Native
-
-Layered architecture:
-
-- Domain
-- Application
-- Infrastructure
-- Interfaces
-
----
-
-## ADR Coverage (Defined ADRs)
-
-The system currently defines the following Architectural Decision Records (ADR-001…ADR-021).
-
-Each ADR’s **status** (Proposed, Accepted, Superseded, etc.) is defined only in its own ADR document under `docs/adr` and that is the authoritative source for its current state.
-
-This snapshot lists the ADRs for orientation and coverage only, without redefining their status.
-
-- ADR-001 — Multi-Tenancy Isolation Strategy
-- ADR-002 — Database Engine Strategy
-- ADR-003 — JWT Signing & Key Rotation Strategy
-- ADR-004 — Caching Strategy
-- ADR-005 — API Rate Limiting Strategy
-- ADR-006 — Background Job Processing Strategy
-- ADR-007 — Feature Flag & Runtime Configuration Strategy
-- ADR-008 — Audit Logging & Compliance Strategy
-- ADR-009 — Horizontal Scaling & Load Balancing Strategy
-- ADR-010 — Data Governance & Retention Policy
-- ADR-011 — Event-Driven Architecture Strategy
-- ADR-012 — Distributed Tracing Strategy
-- ADR-013 — API Versioning & Backward Compatibility Strategy
-- ADR-014 — Advanced Secret Management Strategy
-- ADR-015 — Error & Exception Handling Strategy
-- ADR-016 — Testing Strategy
-- ADR-017 — Dependency & Package Management Strategy
-- ADR-018 — Migration & Schema Evolution Policy
-- ADR-019 — Observability & Logging Contract
-- ADR-020 — Code Style & Formatting Governance
-- ADR-021 — Project Initialization & Validation Policy
-
----
-
-## ADR Index Reference
-
-The complete structured overview of all ADR documents is available in:
-
-docs/adr/ADR-INDEX.md
-
-This index must always reflect the full set of ADR-001…ADR-021 (and any future ADRs).
-
-Snapshot must remain aligned with docs/adr/ADR-INDEX.md at all times.
-
----
-
-## Documented STEP State
-
-Current operational STEP documents present in repository:
-
-- STEP-00 — Development Environment Baseline
-- STEP-01 — Monorepo Bootstrap
-- STEP-01A — Documentation Alignment
-- STEP-02 — Infrastructure Baseline
-- STEP-03 — Authentication Skeleton
-- STEP-04 — Multi-Tenant Infrastructure Layer
-- STEP-05 — Repository & Service Pattern Foundation
-- STEP-06 — Testing Infrastructure & Quality Gates
-
-Scope ownership and exclusions are defined by STEP documents and STEP-RESPONSIBILITY-MATRIX.
-
----
-
-## Architectural Invariants (Derived from ADRs)
-
-1. Tenant isolation is mandatory.
-2. Database remains the source of truth.
-3. Cross-layer shortcuts are not allowed.
-4. Secrets must not be hardcoded.
-5. Structural changes require ADR governance.
-
----
-
-## Resume Guidance
-
-To resume architecture work in a new session:
-
-1. Load this snapshot.
-2. Load relevant ADRs and STEP document.
-3. Continue from the next planned operational step or approved feature step.
